@@ -27,10 +27,10 @@ export const parseMarkdown = (text: string): string => {
 
   // Process lists before line breaks to avoid conflicts
   // Unordered lists: - item or * item
-  html = html.replace(/^[\s]*[-*]\s+(.+)$/gm, '<li class="mb-1">$1</li>');
+  html = html.replace(/^[\s]*[-*]\s+(.+)$/gm, '<li>$1</li>');
   
   // Ordered lists: 1. item
-  html = html.replace(/^[\s]*\d+\.\s+(.+)$/gm, '<li class="mb-1">$1</li>');
+  html = html.replace(/^[\s]*\d+\.\s+(.+)$/gm, '<li>$1</li>');
   
   // Wrap consecutive list items in ul or ol tags
   html = html.replace(/(<li[^>]*>.*?<\/li>)(\s*<li[^>]*>.*?<\/li>)*/gs, (match) => {
