@@ -36,7 +36,9 @@ export interface PageContent {
   logoType: 'text' | 'image';
   logoText: string;
   logoSize: number; // For text
-  logoImageUrl: string;
+  logoImageUrl: string; // Legacy field for backward compatibility
+  logoLightImageUrl: string; // Light mode logo
+  logoDarkImageUrl: string; // Dark mode logo
   logoImageWidth: number; // For image
   heading: string;
   countdownTarget: string;

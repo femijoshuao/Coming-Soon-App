@@ -316,17 +316,111 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ content, onContentChange,
               </>
             ) : (
                <>
+                {/* Light Mode Logo */}
                 <div>
-                  <label className="block text-sm font-medium mb-1">Logo Image</label>
+                  <label className="block text-sm font-medium mb-1">Light Mode Logo</label>
+                  <div className="space-y-2">
+                    {/* Image Preview */}
+                    {formData.logoLightImageUrl && (
+                      <div className="relative inline-block">
+                        <img 
+                          src={formData.logoLightImageUrl} 
+                          alt="Light mode logo preview" 
+                          className="max-h-24 border border-gray-300 dark:border-gray-600 rounded bg-white p-2"
+                        />
+                        <span className="absolute -top-2 -right-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Light</span>
+                      </div>
+                    )}
+                    
+                    {/* URL Input */}
+                    <input 
+                      type="text" 
+                      name="logoLightImageUrl" 
+                      value={formData.logoLightImageUrl || ''} 
+                      onChange={handleInputChange} 
+                      placeholder="https://example.com/light-logo.png"
+                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700"
+                    />
+                    
+                    {/* File Upload */}
+                    <div className="flex items-center gap-2">
+                      <label className="flex-1 cursor-pointer">
+                        <div className="flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md hover:border-yellow-500 dark:hover:border-yellow-400 transition-colors">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                          </svg>
+                          <span className="text-sm">Upload Light Logo</span>
+                        </div>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={(e) => handleImageUpload(e, 'logoLightImageUrl')}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dark Mode Logo */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">Dark Mode Logo</label>
+                  <div className="space-y-2">
+                    {/* Image Preview */}
+                    {formData.logoDarkImageUrl && (
+                      <div className="relative inline-block">
+                        <img 
+                          src={formData.logoDarkImageUrl} 
+                          alt="Dark mode logo preview" 
+                          className="max-h-24 border border-gray-300 dark:border-gray-600 rounded bg-gray-800 p-2"
+                        />
+                        <span className="absolute -top-2 -right-2 text-xs bg-gray-800 text-white px-2 py-1 rounded">Dark</span>
+                      </div>
+                    )}
+                    
+                    {/* URL Input */}
+                    <input 
+                      type="text" 
+                      name="logoDarkImageUrl" 
+                      value={formData.logoDarkImageUrl || ''} 
+                      onChange={handleInputChange} 
+                      placeholder="https://example.com/dark-logo.png"
+                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700"
+                    />
+                    
+                    {/* File Upload */}
+                    <div className="flex items-center gap-2">
+                      <label className="flex-1 cursor-pointer">
+                        <div className="flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md hover:border-gray-500 dark:hover:border-gray-400 transition-colors">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                          </svg>
+                          <span className="text-sm">Upload Dark Logo</span>
+                        </div>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={(e) => handleImageUpload(e, 'logoDarkImageUrl')}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Legacy Logo (for backward compatibility) */}
+                <div className="border-t pt-4">
+                  <label className="block text-sm font-medium mb-1">Legacy Logo (Fallback)</label>
                   <div className="space-y-2">
                     {/* Image Preview */}
                     {formData.logoImageUrl && (
                       <div className="relative inline-block">
                         <img 
                           src={formData.logoImageUrl} 
-                          alt="Logo preview" 
-                          className="max-h-24 border border-gray-300 dark:border-gray-600 rounded"
+                          alt="Legacy logo preview" 
+                          className="max-h-20 border border-gray-300 dark:border-gray-600 rounded opacity-75"
                         />
+                        <span className="absolute -top-2 -right-2 text-xs bg-gray-500 text-white px-2 py-1 rounded">Legacy</span>
                       </div>
                     )}
                     
@@ -334,9 +428,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ content, onContentChange,
                     <input 
                       type="text" 
                       name="logoImageUrl" 
-                      value={formData.logoImageUrl} 
+                      value={formData.logoImageUrl || ''} 
                       onChange={handleInputChange} 
-                      placeholder="https://example.com/logo.png"
+                      placeholder="https://example.com/legacy-logo.png"
                       className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700"
                     />
                     
@@ -347,7 +441,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ content, onContentChange,
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                           </svg>
-                          <span className="text-sm">Upload Image</span>
+                          <span className="text-sm">Upload Legacy Logo</span>
                         </div>
                         <input 
                           type="file" 
@@ -358,10 +452,11 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ content, onContentChange,
                       </label>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Upload an image or paste a URL. Max size: 2MB
+                      Upload separate logos for light and dark modes, or use legacy logo as fallback. Max size: 2MB each.
                     </p>
                   </div>
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium mb-1">Logo Image Width: {formData.logoImageWidth}px</label>
                   <input type="range" name="logoImageWidth" min="50" max="300" value={formData.logoImageWidth} onChange={handleNumericInputChange} className="w-full"/>

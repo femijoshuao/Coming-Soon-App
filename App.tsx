@@ -32,12 +32,41 @@ const getContrastingTextColor = (hexColor: string): string => {
   return (yiq >= 128) ? '#000000' : '#FFFFFF';
 };
 
+// Helper function to determine the current theme (light/dark) for logo selection
+const getCurrentTheme = (themeMode: Theme): 'light' | 'dark' => {
+  if (themeMode === 'light') return 'light';
+  if (themeMode === 'dark') return 'dark';
+  
+  // For 'system' mode, check the document's dark class or media query
+  if (typeof window !== 'undefined') {
+    const isDarkMode = document.documentElement.classList.contains('dark') ||
+                      window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return isDarkMode ? 'dark' : 'light';
+  }
+  
+  return 'light'; // Default fallback
+};
+
+// Helper function to get the appropriate logo URL based on theme
+const getLogoImageUrl = (content: PageContent, currentTheme: 'light' | 'dark'): string => {
+  if (currentTheme === 'dark' && content.logoDarkImageUrl) {
+    return content.logoDarkImageUrl;
+  }
+  if (currentTheme === 'light' && content.logoLightImageUrl) {
+    return content.logoLightImageUrl;
+  }
+  // Fall back to legacy logoImageUrl if theme-specific images aren't available
+  return content.logoImageUrl || content.logoLightImageUrl || content.logoDarkImageUrl || '';
+};
+
 // Default content if nothing is saved in Firebase
 const getDefaultContent = (): PageContent => ({
   logoType: 'text',
   logoText: 'IChanneTech',
   logoSize: 28,
-  logoImageUrl: 'https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600',
+  logoImageUrl: 'https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600', // Legacy for backward compatibility
+  logoLightImageUrl: 'https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600',
+  logoDarkImageUrl: 'https://tailwindui.com/img/logos/mark.svg?color=white&shade=100',
   logoImageWidth: 150,
   heading: 'Our website is under construction, follow us for update now!',
   countdownTarget: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
@@ -93,17 +122,23 @@ const App: React.FC = () => {
   // Update local content when Firebase content loads
   useEffect(() => {
     if (firebaseContent) {
+      const defaultContent = getDefaultContent();
       // Merge Firebase content with defaults to ensure all properties exist
-      setContent({
-        ...getDefaultContent(),
+      const mergedContent = {
+        ...defaultContent,
         ...firebaseContent,
         // Ensure mobileImages has default structure if not present
         mobileImages: firebaseContent.mobileImages || {
           enabled: false,
           displayType: 'single',
           images: []
-        }
-      });
+        },
+        // Handle migration from old single logo to light/dark logos
+        logoLightImageUrl: firebaseContent.logoLightImageUrl || firebaseContent.logoImageUrl || defaultContent.logoLightImageUrl,
+        logoDarkImageUrl: firebaseContent.logoDarkImageUrl || defaultContent.logoDarkImageUrl,
+        logoImageUrl: firebaseContent.logoImageUrl || defaultContent.logoImageUrl
+      };
+      setContent(mergedContent);
     }
   }, [firebaseContent]);
 
@@ -256,7 +291,7 @@ const App: React.FC = () => {
                 </h1>
               ) : (
                 <img 
-                  src={content.logoImageUrl} 
+                  src={getLogoImageUrl(content, getCurrentTheme(content.themeMode))} 
                   alt="Logo" 
                   style={{ width: `${content.logoImageWidth}px`, height: 'auto' }}
                 />
