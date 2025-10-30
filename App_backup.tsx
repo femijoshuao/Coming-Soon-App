@@ -9,7 +9,6 @@ import SettingsPanel from './components/SettingsPanel';
 import SubscribeModal from './components/SubscribeModal';
 import AdminLogin from './components/AdminLogin';
 import MobileImageDisplay from './components/MobileImageDisplay';
-import { parseMarkdown } from './utils/markdown';
 
 // URLs for the Google Fonts available in the settings panel.
 const GOOGLE_FONTS: Record<string, string> = {
@@ -72,7 +71,7 @@ const getDefaultContent = (): PageContent => ({
   headingSize: 48,
   headingFontFamily: 'Inter',
   countdownTarget: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
-  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+  description: '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>',
   socials: [
     { id: '1', icon: 'x', url: 'https://twitter.com', label: 'X (Twitter)' },
     { id: '2', icon: 'instagram', url: 'https://instagram.com', label: 'Instagram' },
@@ -339,7 +338,7 @@ const App: React.FC = () => {
             )}
             <div 
               className="max-w-lg text-gray-600 dark:text-gray-400 mb-6 sm:mb-8 text-sm sm:text-base prose prose-sm dark:prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ __html: parseMarkdown(content.description) }}
+              dangerouslySetInnerHTML={{ __html: content.description }}
             />
             <button 
               onClick={() => setIsSubscribeModalOpen(true)}

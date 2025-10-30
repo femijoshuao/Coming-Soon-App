@@ -8,7 +8,6 @@ import Icon from './Icon';
 import SettingsPanel from './SettingsPanel';
 import SubscribeModal from './SubscribeModal';
 import MobileImageDisplay from './MobileImageDisplay';
-import { parseMarkdown } from '../utils/markdown';
 
 // URLs for the Google Fonts available in the settings panel.
 const GOOGLE_FONTS: Record<string, string> = {
@@ -71,7 +70,7 @@ const getDefaultContent = (): PageContent => ({
   headingSize: 48,
   headingFontFamily: 'Inter',
   countdownTarget: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
-  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+  description: '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>',
   socials: [
     { id: '1', icon: 'x', url: 'https://twitter.com', label: 'X (Twitter)' },
     { id: '2', icon: 'instagram', url: 'https://instagram.com', label: 'Instagram' },
@@ -353,7 +352,7 @@ const ComingSoonPage: React.FC = () => {
             )}
             <div 
               className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 mb-8 sm:mb-12 max-w-lg leading-relaxed prose prose-lg dark:prose-invert"
-              dangerouslySetInnerHTML={{ __html: parseMarkdown(content.description) }}
+              dangerouslySetInnerHTML={{ __html: content.description }}
             />
             <div className="flex flex-col sm:flex-row gap-4 max-w-md">
               <button 

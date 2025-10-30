@@ -18,6 +18,17 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      // Copy TinyMCE assets for self-hosted version
+      assetsInclude: ['**/*.woff', '**/*.woff2', '**/*.ttf'],
+      build: {
+        rollupOptions: {
+          external: [],
+        },
+        copyPublicDir: true
+      },
+      optimizeDeps: {
+        include: ['tinymce']
       }
     };
 });

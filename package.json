@@ -5,16 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "cp -r node_modules/tinymce public/ || xcopy /E /I /Y node_modules\\tinymce public\\tinymce",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tinymce/tinymce-react": "^6.3.0",
     "@types/react-router-dom": "^5.3.3",
     "firebase": "^12.4.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-firebase-hooks": "^5.1.1",
-    "react-router-dom": "^7.9.5"
+    "react-router-dom": "^7.9.5",
+    "tinymce": "^8.2.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.env
 *.sw?
+
+# TinyMCE assets (copied during build)
+public/tinymce/

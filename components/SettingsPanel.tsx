@@ -4,6 +4,7 @@ import { auth } from '../firebase-config';
 import type { PageContent, SocialLink } from '../types';
 import Icon from './Icon';
 import SubscriberManagement from './SubscriberManagement';
+import TinyMCEEditor from './TinyMCEEditor';
 
 interface SettingsPanelProps {
   content: PageContent;
@@ -31,7 +32,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ content, onContentChange,
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [showSubscribers, setShowSubscribers] = useState(false);
-  const [descriptionTextareaRef, setDescriptionTextareaRef] = useState<HTMLTextAreaElement | null>(null);
 
   // Effect to sync local form state if the parent's content changes.
   useEffect(() => {
@@ -177,84 +177,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ content, onContentChange,
     if (confirm('Are you sure you want to logout?')) {
       await signOut(auth);
       onClose();
-    }
-  };
-
-  // Text formatting helpers for description
-  const insertFormatting = (before: string, after: string, placeholder: string = 'text') => {
-    if (!descriptionTextareaRef) return;
-    
-    const textarea = descriptionTextareaRef;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = formData.description.substring(start, end);
-    const textToInsert = selectedText || placeholder;
-    
-    const newText = 
-      formData.description.substring(0, start) +
-      before + textToInsert + after +
-      formData.description.substring(end);
-    
-    updateContent({ description: newText });
-    
-    // Set cursor position after formatting
-    setTimeout(() => {
-      textarea.focus();
-      const newCursorPos = start + before.length + textToInsert.length;
-      textarea.setSelectionRange(newCursorPos, newCursorPos);
-    }, 0);
-  };
-
-  const formatBold = () => insertFormatting('**', '**', 'bold text');
-  const formatItalic = () => insertFormatting('*', '*', 'italic text');
-  const formatLink = () => {
-    const url = prompt('Enter URL:');
-    if (url) {
-      insertFormatting('[', `](${url})`, 'link text');
-    }
-  };
-  const formatStrikethrough = () => insertFormatting('~~', '~~', 'strikethrough');
-  const formatCode = () => insertFormatting('`', '`', 'code');
-  
-  const formatBulletList = () => {
-    if (descriptionTextareaRef) {
-      const textarea = descriptionTextareaRef;
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const value = textarea.value;
-      const selectedText = value.substring(start, end);
-      
-      if (selectedText) {
-        // Convert selected lines to bullet list
-        const lines = selectedText.split('\n');
-        const bulletLines = lines.map(line => line.trim() ? `- ${line.trim()}` : line).join('\n');
-        insertFormatting('', '', bulletLines);
-      } else {
-        // Insert single bullet point
-        insertFormatting('- ', '', 'list item');
-      }
-    }
-  };
-  
-  const formatNumberedList = () => {
-    if (descriptionTextareaRef) {
-      const textarea = descriptionTextareaRef;
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const value = textarea.value;
-      const selectedText = value.substring(start, end);
-      
-      if (selectedText) {
-        // Convert selected lines to numbered list
-        const lines = selectedText.split('\n');
-        const numberedLines = lines.map((line, index) => 
-          line.trim() ? `${index + 1}. ${line.trim()}` : line
-        ).join('\n');
-        insertFormatting('', '', numberedLines);
-      } else {
-        // Insert single numbered item
-        insertFormatting('1. ', '', 'list item');
-      }
     }
   };
 
@@ -532,91 +454,14 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ content, onContentChange,
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Description</label>
-              <div className="space-y-2">
-                {/* Formatting Toolbar */}
-                <div className="flex flex-wrap gap-1 p-2 bg-gray-100 dark:bg-gray-700 rounded-md border border-gray-300 dark:border-gray-600">
-                  <button
-                    type="button"
-                    onClick={formatBold}
-                    className="px-2 py-1 text-xs font-bold bg-white dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded border border-gray-300 dark:border-gray-500 transition-colors"
-                    title="Bold (Ctrl+B)"
-                  >
-                    <strong>B</strong>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={formatItalic}
-                    className="px-2 py-1 text-xs italic bg-white dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded border border-gray-300 dark:border-gray-500 transition-colors"
-                    title="Italic (Ctrl+I)"
-                  >
-                    <em>I</em>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={formatStrikethrough}
-                    className="px-2 py-1 text-xs bg-white dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded border border-gray-300 dark:border-gray-500 transition-colors"
-                    title="Strikethrough"
-                  >
-                    <del>S</del>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={formatCode}
-                    className="px-2 py-1 text-xs font-mono bg-white dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded border border-gray-300 dark:border-gray-500 transition-colors"
-                    title="Code"
-                  >
-                    &lt;/&gt;
-                  </button>
-                  <button
-                    type="button"
-                    onClick={formatLink}
-                    className="px-2 py-1 text-xs bg-white dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded border border-gray-300 dark:border-gray-500 transition-colors"
-                    title="Insert Link"
-                  >
-                    🔗
-                  </button>
-                  <button
-                    type="button"
-                    onClick={formatBulletList}
-                    className="px-2 py-1 text-xs bg-white dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded border border-gray-300 dark:border-gray-500 transition-colors"
-                    title="Bullet List"
-                  >
-                    •
-                  </button>
-                  <button
-                    type="button"
-                    onClick={formatNumberedList}
-                    className="px-2 py-1 text-xs bg-white dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded border border-gray-300 dark:border-gray-500 transition-colors"
-                    title="Numbered List"
-                  >
-                    1.
-                  </button>
-                </div>
-                
-                {/* Textarea */}
-                <textarea 
-                  ref={(el) => setDescriptionTextareaRef(el)}
-                  name="description" 
-                  value={formData.description} 
-                  onChange={handleInputChange} 
-                  rows={5} 
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 font-mono text-sm"
-                  placeholder="Enter your description. You can use markdown formatting."
-                />
-                
-                {/* Formatting Help */}
-                <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-                  <p className="font-semibold">Markdown formatting supported:</p>
-                  <ul className="list-disc list-inside ml-2 space-y-0.5">
-                    <li><code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">**bold**</code> or <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">__bold__</code> for <strong>bold text</strong></li>
-                    <li><code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">*italic*</code> or <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">_italic_</code> for <em>italic text</em></li>
-                    <li><code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">[text](url)</code> for links</li>
-                    <li><code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">~~strikethrough~~</code> for <del>strikethrough</del></li>
-                    <li><code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">`code`</code> for inline code</li>
-                    <li><code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">- item</code> or <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">* item</code> for bullet lists</li>
-                    <li><code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">1. item</code> for numbered lists</li>
-                  </ul>
-                </div>
+              <TinyMCEEditor
+                value={formData.description}
+                onChange={(content) => updateContent({ description: content })}
+                placeholder="Enter your description using the rich text editor..."
+                height={250}
+              />
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                <p>Use the rich text editor above to format your content with bold, italic, lists, links, and more.</p>
               </div>
             </div>
             <div>
