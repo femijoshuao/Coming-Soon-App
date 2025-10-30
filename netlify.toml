@@ -9,3 +9,9 @@
   
   # Alternative: Completely disable secrets scanning if the above doesn't work
   # SECRETS_SCAN_ENABLED = "false"
+
+# Handle client-side routing for SPA
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
