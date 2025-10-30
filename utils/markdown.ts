@@ -25,12 +25,32 @@ export const parseMarkdown = (text: string): string => {
   // Links: [text](url)
   html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="underline hover:opacity-80">$1</a>');
 
+  // Process lists before line breaks to avoid conflicts
+  // Unordered lists: - item or * item
+  html = html.replace(/^[\s]*[-*]\s+(.+)$/gm, '<li class="mb-1">$1</li>');
+  
+  // Ordered lists: 1. item
+  html = html.replace(/^[\s]*\d+\.\s+(.+)$/gm, '<li class="mb-1">$1</li>');
+  
+  // Wrap consecutive list items in ul or ol tags
+  html = html.replace(/(<li[^>]*>.*?<\/li>)(\s*<li[^>]*>.*?<\/li>)*/gs, (match) => {
+    // Check if this looks like it should be an ordered list (contains numbered items in original)
+    const originalLines = text.split('\n');
+    const hasOrderedList = originalLines.some(line => /^\s*\d+\.\s+/.test(line));
+    
+    if (hasOrderedList && match.includes('1.')) {
+      return `<ol class="list-decimal list-inside space-y-1 my-4">${match}</ol>`;
+    } else {
+      return `<ul class="list-disc list-inside space-y-1 my-4">${match}</ul>`;
+    }
+  });
+
   // Line breaks: double newline = paragraph, single newline = <br>
   html = html.replace(/\n\n/g, '</p><p class="mt-4">');
   html = html.replace(/\n/g, '<br />');
 
-  // Wrap in paragraph if not already wrapped
-  if (!html.startsWith('<p')) {
+  // Wrap in paragraph if not already wrapped and doesn't start with list
+  if (!html.startsWith('<p') && !html.startsWith('<ul') && !html.startsWith('<ol')) {
     html = '<p>' + html + '</p>';
   }
 

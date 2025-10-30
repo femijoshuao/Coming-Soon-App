@@ -215,6 +215,48 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ content, onContentChange,
   };
   const formatStrikethrough = () => insertFormatting('~~', '~~', 'strikethrough');
   const formatCode = () => insertFormatting('`', '`', 'code');
+  
+  const formatBulletList = () => {
+    if (descriptionTextareaRef) {
+      const textarea = descriptionTextareaRef;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const value = textarea.value;
+      const selectedText = value.substring(start, end);
+      
+      if (selectedText) {
+        // Convert selected lines to bullet list
+        const lines = selectedText.split('\n');
+        const bulletLines = lines.map(line => line.trim() ? `- ${line.trim()}` : line).join('\n');
+        insertFormatting('', '', bulletLines);
+      } else {
+        // Insert single bullet point
+        insertFormatting('- ', '', 'list item');
+      }
+    }
+  };
+  
+  const formatNumberedList = () => {
+    if (descriptionTextareaRef) {
+      const textarea = descriptionTextareaRef;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const value = textarea.value;
+      const selectedText = value.substring(start, end);
+      
+      if (selectedText) {
+        // Convert selected lines to numbered list
+        const lines = selectedText.split('\n');
+        const numberedLines = lines.map((line, index) => 
+          line.trim() ? `${index + 1}. ${line.trim()}` : line
+        ).join('\n');
+        insertFormatting('', '', numberedLines);
+      } else {
+        // Insert single numbered item
+        insertFormatting('1. ', '', 'list item');
+      }
+    }
+  };
 
   return (
     <>
@@ -473,6 +515,18 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ content, onContentChange,
               <textarea name="heading" value={formData.heading} onChange={handleInputChange} rows={3} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700"/>
             </div>
             <div>
+              <label className="block text-sm font-medium mb-1">Heading Font Size: {formData.headingSize || 48}px</label>
+              <input type="range" name="headingSize" min="24" max="80" value={formData.headingSize || 48} onChange={handleNumericInputChange} className="w-full"/>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Heading Font Family</label>
+              <select name="headingFontFamily" value={formData.headingFontFamily || 'Inter'} onChange={handleInputChange} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700">
+                {FONT_OPTIONS.map((font) => (
+                  <option key={font} value={font}>{font}</option>
+                ))}
+              </select>
+            </div>
+            <div>
               <label className="block text-sm font-medium mb-1">Countdown Target Date</label>
               <input type="datetime-local" name="countdownTarget" value={formData.countdownTarget} onChange={handleInputChange} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700"/>
             </div>
@@ -521,6 +575,22 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ content, onContentChange,
                   >
                     🔗
                   </button>
+                  <button
+                    type="button"
+                    onClick={formatBulletList}
+                    className="px-2 py-1 text-xs bg-white dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded border border-gray-300 dark:border-gray-500 transition-colors"
+                    title="Bullet List"
+                  >
+                    •
+                  </button>
+                  <button
+                    type="button"
+                    onClick={formatNumberedList}
+                    className="px-2 py-1 text-xs bg-white dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded border border-gray-300 dark:border-gray-500 transition-colors"
+                    title="Numbered List"
+                  >
+                    1.
+                  </button>
                 </div>
                 
                 {/* Textarea */}
@@ -543,6 +613,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ content, onContentChange,
                     <li><code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">[text](url)</code> for links</li>
                     <li><code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">~~strikethrough~~</code> for <del>strikethrough</del></li>
                     <li><code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">`code`</code> for inline code</li>
+                    <li><code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">- item</code> or <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">* item</code> for bullet lists</li>
+                    <li><code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">1. item</code> for numbered lists</li>
                   </ul>
                 </div>
               </div>

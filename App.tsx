@@ -69,6 +69,8 @@ const getDefaultContent = (): PageContent => ({
   logoDarkImageUrl: 'https://tailwindui.com/img/logos/mark.svg?color=white&shade=100',
   logoImageWidth: 150,
   heading: 'Our website is under construction, follow us for update now!',
+  headingSize: 48,
+  headingFontFamily: 'Inter',
   countdownTarget: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
   description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
   socials: [
@@ -136,7 +138,10 @@ const App: React.FC = () => {
         // Handle migration from old single logo to light/dark logos
         logoLightImageUrl: firebaseContent.logoLightImageUrl || firebaseContent.logoImageUrl || defaultContent.logoLightImageUrl,
         logoDarkImageUrl: firebaseContent.logoDarkImageUrl || defaultContent.logoDarkImageUrl,
-        logoImageUrl: firebaseContent.logoImageUrl || defaultContent.logoImageUrl
+        logoImageUrl: firebaseContent.logoImageUrl || defaultContent.logoImageUrl,
+        // Handle migration for new heading properties
+        headingSize: firebaseContent.headingSize || defaultContent.headingSize,
+        headingFontFamily: firebaseContent.headingFontFamily || defaultContent.headingFontFamily
       };
       setContent(mergedContent);
     }
@@ -315,7 +320,13 @@ const App: React.FC = () => {
           </header>
 
           <section className="flex flex-col justify-center flex-grow py-8 sm:py-12">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-6 sm:mb-8 max-w-lg leading-tight">
+            <h2 
+              className="font-extrabold mb-6 sm:mb-8 max-w-lg leading-tight"
+              style={{ 
+                fontSize: `${content.headingSize}px`, 
+                fontFamily: `'${content.headingFontFamily}', sans-serif` 
+              }}
+            >
               {content.heading}
             </h2>
             {content.showCountdown && (

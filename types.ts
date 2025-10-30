@@ -41,6 +41,8 @@ export interface PageContent {
   logoDarkImageUrl: string; // Dark mode logo
   logoImageWidth: number; // For image
   heading: string;
+  headingSize: number; // Size of the main heading
+  headingFontFamily: string; // Font family for the main heading
   countdownTarget: string;
   description: string;
   socials: SocialLink[];
