@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { doc, getDoc, setDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, runTransaction } from 'firebase/firestore';
 import { db, SITE_ID } from '../firebase-config';
 import type { PageContent } from '../types';
 
@@ -120,18 +120,33 @@ export interface Subscriber {
  */
 export const saveSubscriber = async (name: string, email: string, phone?: string) => {
   try {
-    const subscribersRef = collection(db, 'sites', SITE_ID, 'subscribers');
-    await addDoc(subscribersRef, {
-      name,
-      email,
-      phone: phone || '',
-      subscribedAt: serverTimestamp(),
-      siteId: SITE_ID
+    // Normalize email for uniqueness
+    const normalizedEmail = email.trim().toLowerCase();
+    const docId = encodeURIComponent(normalizedEmail);
+    const subscriberRef = doc(db, 'sites', SITE_ID, 'subscribers', docId);
+
+    // Use a transaction to guarantee one subscription per email (per site)
+    await runTransaction(db, async (trx) => {
+      const existing = await trx.get(subscriberRef);
+      if (existing.exists()) {
+        throw new Error('ALREADY_SUBSCRIBED');
+      }
+      trx.set(subscriberRef, {
+        name,
+        email: normalizedEmail,
+        phone: phone || '',
+        subscribedAt: serverTimestamp(),
+        siteId: SITE_ID
+      });
     });
+
     return { success: true, message: 'Subscription successful!' };
   } catch (err: any) {
+    if (err?.message === 'ALREADY_SUBSCRIBED') {
+      return { success: false, message: 'This email is already subscribed.' };
+    }
     console.error('Error saving subscriber:', err);
-    return { success: false, message: err.message || 'Failed to subscribe' };
+    return { success: false, message: err?.message || 'Failed to subscribe' };
   }
 };
 
