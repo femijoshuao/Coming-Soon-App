@@ -15,3 +15,8 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Edge function to inject SEO for bots/crawlers
+[[edge_functions]]
+  function = "seo"
+  path = "/*"
