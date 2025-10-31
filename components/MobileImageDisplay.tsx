@@ -14,10 +14,25 @@ const MobileImageDisplay: React.FC<MobileImageDisplayProps> = ({ settings }) => 
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  console.log('MobileImageDisplay: Received settings:', {
+    settings,
+    enabled: settings?.enabled,
+    imagesCount: settings?.images?.length,
+    displayType: settings?.displayType
+  });
+
   // Don't render if disabled, no settings, or no images
   if (!settings || !settings.enabled || !settings.images || settings.images.length === 0) {
+    console.log('MobileImageDisplay: Not rendering because:', {
+      hasSettings: !!settings,
+      enabled: settings?.enabled,
+      hasImages: !!settings?.images,
+      imagesLength: settings?.images?.length
+    });
     return null;
   }
+
+  console.log('MobileImageDisplay: Rendering with images:', settings.images);
 
   const openLightbox = (index: number) => {
     setCurrentImageIndex(index);

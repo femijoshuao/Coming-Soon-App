@@ -20,8 +20,14 @@ export const usePageContent = () => {
         const docSnap = await getDoc(docRef);
         
         if (docSnap.exists()) {
-          setContent(docSnap.data() as PageContent);
+          const loadedContent = docSnap.data() as PageContent;
+          console.log('usePageContent: Loaded from Firebase:', {
+            mobileImages: loadedContent.mobileImages,
+            hasData: docSnap.exists()
+          });
+          setContent(loadedContent);
         } else {
+          console.log('usePageContent: No content in Firebase, using defaults');
           // If no content exists, use default content from App.tsx
           setContent(null);
         }
@@ -41,13 +47,52 @@ export const usePageContent = () => {
   // Save page content to Firebase
   const saveContent = async (newContent: PageContent) => {
     try {
+      console.log('usePageContent: Saving content to Firebase:', {
+        mobileImages: newContent.mobileImages,
+        fullContent: newContent
+      });
+      
+      // Ensure mobileImages is properly structured before saving
+      const contentToSave = {
+        ...newContent,
+        mobileImages: newContent.mobileImages ? {
+          enabled: Boolean(newContent.mobileImages.enabled),
+          displayType: newContent.mobileImages.displayType || 'single',
+          images: Array.isArray(newContent.mobileImages.images) 
+            ? newContent.mobileImages.images.map(img => ({
+                url: String(img.url || ''),
+                description: String(img.description || '')
+              }))
+            : []
+        } : {
+          enabled: false,
+          displayType: 'single',
+          images: []
+        }
+      };
+      
+      // Guard against Firestore 1MB document limit when users paste base64 images
+      const estimatedSize = JSON.stringify(contentToSave).length;
+      if (estimatedSize > 900_000) {
+        const message = 'Settings payload is too large to save (likely due to embedded images). Please use hosted image URLs or reduce image size/quantity.';
+        console.error('usePageContent: Save aborted - payload too large (~bytes):', estimatedSize);
+        return { success: false, message };
+      }
+
+      console.log('usePageContent: Sanitized content:', {
+        mobileImages: contentToSave.mobileImages
+      });
+      
       const docRef = doc(db, 'sites', SITE_ID, 'settings', 'pageContent');
       await setDoc(docRef, {
-        ...newContent,
+        ...contentToSave,
         updatedAt: serverTimestamp(),
         siteId: SITE_ID
       });
-      setContent(newContent);
+      // Ensure local hook state mirrors the sanitized content that was actually saved
+      setContent(contentToSave as PageContent);
+      
+      console.log('usePageContent: Content saved successfully');
       return { success: true, message: 'Settings saved successfully!' };
     } catch (err: any) {
       console.error('Error saving content:', err);

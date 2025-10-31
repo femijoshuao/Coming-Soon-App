@@ -8,7 +8,8 @@ import TinyMCEEditor from './TinyMCEEditor';
 
 interface SettingsPanelProps {
   content: PageContent;
-  onContentChange: (newContent: PageContent) => void;
+  // Return a promise so save success/failure can be handled properly
+  onContentChange: (newContent: PageContent) => Promise<{ success: boolean; message: string }>;
   onClose: () => void;
 }
 
@@ -171,7 +172,11 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ content, onContentChange,
 
   // Centralized function to update form state and notify the parent.
   const updateContent = (newValues: Partial<PageContent>) => {
+    console.log('updateContent called with:', newValues);
     const newFormData = { ...formData, ...newValues };
+    console.log('New formData after update:', {
+      mobileImages: newFormData.mobileImages
+    });
     setFormData(newFormData);
     // Don't auto-save, just update local state
   };
@@ -181,10 +186,21 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ content, onContentChange,
     setSaving(true);
     setSaveMessage('');
     
-    await onContentChange(formData);
+    console.log('SettingsPanel: Attempting to save formData:', {
+      mobileImages: formData.mobileImages,
+      mobileImagesEnabled: formData.mobileImages?.enabled,
+      imagesCount: formData.mobileImages?.images?.length
+    });
+    
+    const result = await onContentChange(formData);
     
     setSaving(false);
-    setSaveMessage('✓ Saved successfully!');
+    if (result?.success) {
+      setSaveMessage('✓ Saved successfully!');
+    } else {
+      setSaveMessage(`✗ Save failed: ${result?.message || 'Unknown error'}`);
+      console.error('SettingsPanel: Save failed', result);
+    }
     
     // Clear success message after 3 seconds
     setTimeout(() => setSaveMessage(''), 3000);

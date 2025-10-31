@@ -122,6 +122,10 @@ const ComingSoonPage: React.FC = () => {
   // Update local content when Firebase content loads
   useEffect(() => {
     if (firebaseContent) {
+      console.log('ComingSoonPage: Firebase content loaded:', {
+        mobileImages: firebaseContent.mobileImages
+      });
+      
       const defaultContent = getDefaultContent();
       // Merge Firebase content with defaults to ensure all properties exist
       const mergedContent = {
@@ -141,6 +145,8 @@ const ComingSoonPage: React.FC = () => {
         headingSize: firebaseContent.headingSize || defaultContent.headingSize,
         headingFontFamily: firebaseContent.headingFontFamily || defaultContent.headingFontFamily
       };
+      
+      console.log('ComingSoonPage: Merged content mobileImages:', mergedContent.mobileImages);
       setContent(mergedContent);
     }
   }, [firebaseContent]);
@@ -268,9 +274,10 @@ const ComingSoonPage: React.FC = () => {
   // --- Handlers ---
 
   // Handler for updating content and saving to Firebase.
-  const handleContentChange = useCallback((newContent: PageContent) => {
+  const handleContentChange = useCallback(async (newContent: PageContent) => {
     setContent(newContent);
-    saveContent(newContent);
+    const result = await saveContent(newContent);
+    return result;
   }, [saveContent]);
 
   // Function to toggle theme mode between light/dark/system.
@@ -370,6 +377,13 @@ const ComingSoonPage: React.FC = () => {
             </div>
           </section>
 
+          {/* Mobile Images Display (before footer on mobile) */}
+          {content.mobileImages.enabled && (
+            <div className="lg:hidden mt-4 mb-8">
+              <MobileImageDisplay settings={content.mobileImages} />
+            </div>
+          )}
+
           <footer className="text-center sm:text-left">
             <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-4">
               {content.interests.map((interest, index) => (
@@ -383,13 +397,6 @@ const ComingSoonPage: React.FC = () => {
             </p>
           </footer>
         </div>
-
-        {/* Mobile Images Display */}
-        {content.mobileImages.enabled && (
-          <div className="lg:hidden">
-            <MobileImageDisplay settings={content.mobileImages} />
-          </div>
-        )}
 
         {/* Right Column - Side Image (hidden on mobile when mobile images are enabled) */}
         <div className={`relative ${content.mobileImages.enabled ? 'hidden lg:block' : 'hidden lg:block'}`}>

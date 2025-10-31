@@ -257,12 +257,13 @@ const App: React.FC = () => {
   };
 
   // Handler to update the main content state from the settings panel.
-  const handleContentChange = async (newContent: PageContent) => {
+  const handleContentChange = async (newContent: PageContent): Promise<{ success: boolean; message: string }> => {
     setContent(newContent);
     // Save to Firebase only if user is authenticated
     if (user) {
-      await saveContent(newContent);
+      return await saveContent(newContent);
     }
+    return { success: true, message: 'Updated locally (not authenticated)' };
   };
 
   // --- Render ---
