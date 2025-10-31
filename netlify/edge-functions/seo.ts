@@ -11,6 +11,11 @@ declare const HTMLRewriter: any;
 const BOT_UA_REGEX = /(bot|crawler|spider|crawling|facebookexternalhit|facebot|twitterbot|linkedinbot|slackbot|embedly|quora link preview|whatsapp|discordbot|pinterest|skypeuripreview|yahoo! slurp)/i;
 
 type SEO = { title: string; description: string; ogImage: string };
+type GlobalDoc = {
+  seo?: SEO;
+  accentColor?: string;
+  logoLightImageUrl?: string;
+};
 
 function isBot(userAgent: string | null): boolean {
   if (!userAgent) return false;
@@ -31,13 +36,46 @@ function parseFirestoreSEO(doc: any): SEO | null {
   }
 }
 
-async function fetchSEOFromFirestore(): Promise<SEO | null> {
+function parseGlobalDoc(doc: any): GlobalDoc {
+  try {
+    const fields = doc?.fields || {};
+    const seo = parseFirestoreSEO(doc) || undefined;
+    const accentColor = fields.accentColor?.stringValue || undefined;
+    const logoLightImageUrl = fields.logoLightImageUrl?.stringValue || undefined;
+    return { seo, accentColor, logoLightImageUrl };
+  } catch {
+    return {};
+  }
+}
+
+async function fetchSEOFromFirestore(): Promise<{ seo: SEO | null; global: GlobalDoc }> {
   const projectId = Deno.env.get('VITE_FIREBASE_PROJECT_ID') || Deno.env.get('FIREBASE_PROJECT_ID');
   const apiKey = Deno.env.get('VITE_FIREBASE_API_KEY') || Deno.env.get('FIREBASE_API_KEY');
   const siteId = Deno.env.get('VITE_SITE_ID') || Deno.env.get('SITE_ID') || 'default';
   if (!projectId || !apiKey) return null;
 
   const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/sites/${encodeURIComponent(siteId)}/settings/pageContent?key=${apiKey}`;
+  const res = await fetch(url, { headers: { accept: 'application/json' } });
+  if (!res.ok) return null;
+  const data = await res.json();
+  return { seo: parseFirestoreSEO(data), global: parseGlobalDoc(data) };
+}
+
+function pathKeyFromUrl(urlStr: string): string {
+  try {
+    const u = new URL(urlStr);
+    let p = u.pathname;
+    if (p.endsWith('/')) p = p.slice(0, -1);
+    if (p.startsWith('/')) p = p.slice(1);
+    return p || 'index';
+  } catch {
+    return 'index';
+  }
+}
+
+async function fetchRouteSEO(projectId: string, apiKey: string, siteId: string, pathKey: string): Promise<SEO | null> {
+  const routeDocId = encodeURIComponent(pathKey.toLowerCase());
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/sites/${encodeURIComponent(siteId)}/seo/${routeDocId}?key=${apiKey}`;
   const res = await fetch(url, { headers: { accept: 'application/json' } });
   if (!res.ok) return null;
   const data = await res.json();
@@ -102,11 +140,37 @@ export default async (request: Request, context: any) => {
 
   if (!isCrawler) return response;
 
-  // Try to fetch dynamic SEO from Firestore
-  let seo = await fetchSEOFromFirestore();
+  // Read env for Firestore
+  const projectId = Deno.env.get('VITE_FIREBASE_PROJECT_ID') || Deno.env.get('FIREBASE_PROJECT_ID');
+  const apiKey = Deno.env.get('VITE_FIREBASE_API_KEY') || Deno.env.get('FIREBASE_API_KEY');
+  const siteId = Deno.env.get('VITE_SITE_ID') || Deno.env.get('SITE_ID') || 'default';
+  if (!projectId || !apiKey) return response;
 
-  // Fallback: attempt to read basic defaults from existing HTML (keep as-is if not available)
-  if (!seo) return response;
+  // Path-based SEO override first
+  const pathKey = pathKeyFromUrl(request.url);
+  const routeSEO = await fetchRouteSEO(projectId, apiKey, siteId, pathKey);
 
-  return rewriteHTML(response, seo);
+  // Global SEO + extras
+  const globalData = await fetchSEOFromFirestore();
+  const globalSEO = globalData?.seo || null;
+  const accentColor = globalData?.global?.accentColor || '#111827';
+  const logoUrl = globalData?.global?.logoLightImageUrl || '';
+
+  // Merge route override with global fallback
+  const chosen: SEO | null = routeSEO || globalSEO;
+  if (!chosen) return response;
+
+  // Ensure og:image absolute URL; if missing, fall back to a dynamic OG image generator
+  const origin = new URL(request.url).origin;
+  if (!chosen.ogImage) {
+    const titleParam = encodeURIComponent(chosen.title || '');
+    const bgParam = encodeURIComponent(accentColor);
+    const logoParam = logoUrl ? `&logo=${encodeURIComponent(logoUrl)}` : '';
+    chosen.ogImage = `${origin}/og-image?title=${titleParam}&bg=${bgParam}${logoParam}`;
+  } else if (!/^https?:\/\//i.test(chosen.ogImage)) {
+    // Make relative paths absolute
+    chosen.ogImage = `${origin}${chosen.ogImage.startsWith('/') ? '' : '/'}${chosen.ogImage}`;
+  }
+
+  return rewriteHTML(response, chosen);
 };

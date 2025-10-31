@@ -20,3 +20,11 @@
 [[edge_functions]]
   function = "seo"
   path = "/*"
+
+[[edge_functions]]
+  function = "seo-health"
+  path = "/api/seo-health"
+
+[[edge_functions]]
+  function = "og-image"
+  path = "/og-image"
