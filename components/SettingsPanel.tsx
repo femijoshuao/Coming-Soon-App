@@ -27,15 +27,33 @@ const SOCIAL_ICON_OPTIONS = [
  * It holds its own form state and calls `onContentChange` to update the parent App component.
  */
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ content, onContentChange, onClose }) => {
+  // Ensure mobileImages is properly initialized
+  const initialContent = {
+    ...content,
+    mobileImages: content.mobileImages || {
+      enabled: false,
+      displayType: 'single' as const,
+      images: []
+    }
+  };
+  
   // Local state for the form, initialized with the content from props.
-  const [formData, setFormData] = useState<PageContent>(content);
+  const [formData, setFormData] = useState<PageContent>(initialContent);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [showSubscribers, setShowSubscribers] = useState(false);
 
   // Effect to sync local form state if the parent's content changes.
   useEffect(() => {
-    setFormData(content);
+    const updatedContent = {
+      ...content,
+      mobileImages: content.mobileImages || {
+        enabled: false,
+        displayType: 'single' as const,
+        images: []
+      }
+    };
+    setFormData(updatedContent);
   }, [content]);
 
   // FIX: Widened the type to include HTMLSelectElement to handle onChange for the font family dropdown.
@@ -779,10 +797,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ content, onContentChange,
                 checked={formData.mobileImages?.enabled || false} 
                 onChange={(e) => updateContent({
                   mobileImages: {
-                    ...formData.mobileImages,
-                    enabled: e.target.checked,
-                    displayType: formData.mobileImages?.displayType || 'single',
-                    images: formData.mobileImages?.images || []
+                    ...(formData.mobileImages || { enabled: false, displayType: 'single', images: [] }),
+                    enabled: e.target.checked
                   }
                 })}
                 className="w-4 h-4 rounded border-gray-300 dark:border-gray-600"
