@@ -20,6 +20,7 @@
 ![App Screenshot](https://github.com/femijoshuao/Coming-Soon-App/blob/main/Screenshot.jpeg)
 
 
+
 ## ✨ Features
 
 ### 🎨 **Stunning Design & Customization**
@@ -57,6 +58,8 @@
 - Lightbox viewer with touch navigation
 - Optional image descriptions
 - Automatic image optimization
+
+ ![App Settings Screenshot](https://github.com/femijoshuao/Coming-Soon-App/blob/main/Screenshot2.jpeg) 
 
 ### 🔌 **Social Media Integration**
 - Add unlimited social media links
