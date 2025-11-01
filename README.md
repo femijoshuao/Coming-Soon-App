@@ -17,6 +17,8 @@
 </div>
 
 ---
+![App Screenshot](https://github.com/femijoshuao/Coming-Soon-App/blob/main/Screenshot.jpeg)
+
 
 ## ✨ Features
 
