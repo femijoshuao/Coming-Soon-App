@@ -1,0 +1,19 @@
+{
+  "github": {
+    "silent": true,
+    "pages": {
+      "source": {
+        "branch": "main",
+        "directory": "/"
+      }
+    }
+  },
+  "build": {
+    "env": {
+      "NODE_VERSION": "18"
+    }
+  },
+  "install": {
+    "args": ["--frozen-lockfile"]
+  }
+}

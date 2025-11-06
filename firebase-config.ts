@@ -4,8 +4,19 @@ import { getFirestore } from 'firebase/firestore';
 
 // Helper function to get environment variable with fallback
 const getEnvVar = (key: string, fallback: string = ''): string => {
-  return import.meta.env[key] || fallback;
+  // Check both import.meta.env (Vite) and process.env (Node.js environments)
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    return import.meta.env[key] || fallback;
+  }
+  // Fallback for other environments
+  if (typeof process !== 'undefined' && process.env) {
+    return process.env[key] || fallback;
+  }
+  return fallback;
 };
+
+// Check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -17,14 +28,25 @@ const firebaseConfig = {
   appId: getEnvVar('VITE_FIREBASE_APP_ID')
 };
 
-// Validate Firebase configuration
-const requiredFields = ['apiKey', 'authDomain', 'projectId', 'appId'];
-const missingFields = requiredFields.filter(field => !firebaseConfig[field as keyof typeof firebaseConfig]);
+// Validate Firebase configuration (only in browser to avoid SSR issues)
+if (isBrowser) {
+  const requiredFields = ['apiKey', 'authDomain', 'projectId', 'appId'];
+  const missingFields = requiredFields.filter(field => !firebaseConfig[field as keyof typeof firebaseConfig]);
 
-if (missingFields.length > 0) {
-  console.error('Missing Firebase configuration:', missingFields);
-  console.error('Current config:', firebaseConfig);
-  throw new Error(`Missing Firebase environment variables: ${missingFields.join(', ')}`);
+  if (missingFields.length > 0) {
+    console.error('Missing Firebase configuration:', missingFields);
+    console.error('Current config:', {
+      ...firebaseConfig,
+      apiKey: firebaseConfig.apiKey ? `${firebaseConfig.apiKey.slice(0, 8)}...` : 'missing'
+    });
+    
+    // In development, throw error. In production, just log warning
+    if (process.env.NODE_ENV === 'development') {
+      throw new Error(`Missing Firebase environment variables: ${missingFields.join(', ')}`);
+    } else {
+      console.warn(`Missing Firebase environment variables: ${missingFields.join(', ')}`);
+    }
+  }
 }
 
 // Initialize Firebase
