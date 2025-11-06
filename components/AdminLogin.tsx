@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase-config';
+import { auth, debugConfig } from '../firebase-config';
 import Icon from './Icon';
 
 interface AdminLoginProps {
@@ -17,6 +17,14 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
+
+  // Debug Firebase configuration on mount
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Firebase Debug Config:', debugConfig);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +32,14 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
     setError('');
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      // Additional validation for Vercel deployment
+      if (!auth) {
+        throw new Error('Firebase authentication not initialized');
+      }
+
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('Login successful:', userCredential.user.uid);
+      
       // User will be automatically redirected by the auth state change
       if (onClose) {
         onClose(); // Close modal if in modal mode
@@ -32,7 +47,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
     } catch (err: any) {
       console.error('Login error:', err);
       
-      // User-friendly error messages
+      // Enhanced error handling for Vercel deployment
       let errorMessage = 'Login failed. Please try again.';
       
       if (err.code === 'auth/invalid-email') {
@@ -47,6 +62,17 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
         errorMessage = 'Invalid email or password.';
       } else if (err.code === 'auth/too-many-requests') {
         errorMessage = 'Too many failed attempts. Please try again later.';
+      } else if (err.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (err.code === 'auth/app-deleted') {
+        errorMessage = 'Firebase app not initialized. Please contact support.';
+      } else if (err.message.includes('Firebase authentication not initialized')) {
+        errorMessage = 'Authentication service unavailable. Please try refreshing the page.';
+      }
+
+      // Add debug information for troubleshooting
+      if (process.env.NODE_ENV === 'development' || window.location.search.includes('debug=true')) {
+        errorMessage += ` (Debug: ${err.code || err.message})`;
       }
       
       setError(errorMessage);
@@ -113,6 +139,31 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
             </button>
           </div>
         </div>
+
+        {/* Debug Panel - only show in development or with debug query param */}
+        {(process.env.NODE_ENV === 'development' || window.location.search.includes('debug=true')) && (
+          <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs">
+            <button 
+              type="button"
+              onClick={() => setDebugMode(!debugMode)}
+              className="text-blue-600 hover:text-blue-700 mb-2"
+            >
+              {debugMode ? 'Hide' : 'Show'} Debug Info
+            </button>
+            {debugMode && (
+              <div className="space-y-1 text-gray-600 dark:text-gray-400">
+                <div>Environment: {process.env.NODE_ENV}</div>
+                <div>API Key: {debugConfig.hasApiKey ? '✓' : '✗'}</div>
+                <div>Auth Domain: {debugConfig.hasAuthDomain ? '✓' : '✗'}</div>
+                <div>Project ID: {debugConfig.hasProjectId ? '✓' : '✗'}</div>
+                <div>App ID: {debugConfig.hasAppId ? '✓' : '✗'}</div>
+                <div>Site ID: {debugConfig.siteId}</div>
+                <div>Auth Ready: {auth ? '✓' : '✗'}</div>
+                <div>User Agent: {navigator.userAgent.slice(0, 50)}...</div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (
